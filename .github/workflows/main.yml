@@ -1,0 +1,45 @@
+name: Build HomeAI APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Get files
+        uses: actions/checkout@v6
+
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android
+        uses: android-actions/setup-android@v4
+
+      - name: Install Android SDK
+        run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          gradle-version: '9.3.1'
+
+      - name: Extract HomeAI
+        run: unzip -q -o HomeAI-Build-Ready.zip
+
+      - name: Build HomeAI APK
+        working-directory: HomeAI_BuildReady
+        run: gradle :app:assembleDebug --no-daemon
+
+      - name: Save HomeAI APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: HomeAI-APK
+          path: HomeAI_BuildReady/app/build/outputs/apk/debug/app-debug.apk
